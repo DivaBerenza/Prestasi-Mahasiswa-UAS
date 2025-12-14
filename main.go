@@ -43,6 +43,9 @@ func main() {
 	// Auth route login
 	route.AuthRoute(app, userRepo)
 
+	// User route (CRUD users, admin only)
+	route.UserRoute(app, userRepo)
+
 	// Channel untuk Ctrl+C
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)

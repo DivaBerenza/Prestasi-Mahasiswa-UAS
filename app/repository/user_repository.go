@@ -68,3 +68,28 @@ func (r *UserRepository) GetPermissionsByUserID(userID string) ([]string, error)
 
 	return perms, nil
 }
+
+// repository/user_repository.go
+func (r *UserRepository) GetAllUsers() ([]*model.User, error) {
+	rows, err := r.DB.Query(`
+		SELECT id, username, email, full_name, role_id, is_active
+		FROM users
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var users []*model.User
+	for rows.Next() {
+		var u model.User
+		if err := rows.Scan(&u.ID, &u.Username, &u.Email, &u.FullName, &u.RoleID, &u.IsActive); err != nil {
+			return nil, err
+		}
+		users = append(users, &u)
+	}
+
+	return users, nil
+}
+
+
