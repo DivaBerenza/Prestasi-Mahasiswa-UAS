@@ -3,28 +3,61 @@ package main
 import (
 	"fmt"
 	"log"
-	"net/http"
+	"os"
+	"os/signal"
 
 	"UAS/config"
 	"UAS/database"
+	"UAS/app/repository"
+	"UAS/route"
+
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 )
 
 func main() {
+	// Load config
 	cfg := config.Load()
 
-	// Connect DB
-	database.Connect(cfg.DB_DSN)
+	// Connect ke DB
+	db := database.Connect(cfg.DB_DSN)
+	fmt.Println("✅ Database connected successfully!")
 
-	// Simple test route
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "🚀 API Running. Database Connected Successfully.")
+	// Init repository
+	userRepo := repository.NewUserRepository(db)
+
+	// Init Fiber
+	app := fiber.New()
+
+	// Middleware CORS
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "*",
+		AllowMethods: "GET,POST,PUT,DELETE",
+	}))
+
+	// Test route
+	app.Get("/", func(c *fiber.Ctx) error {
+		return c.SendString("🚀 API Running. Database Connected Successfully.")
 	})
 
-	log.Printf("Server running on http://localhost:%s\n", cfg.AppPort)
+	// Auth route login
+	route.AuthRoute(app, userRepo)
 
-	// Start server
-	err := http.ListenAndServe(":"+cfg.AppPort, nil)
-	if err != nil {
-		log.Fatal("❌ Server failed:", err)
-	}
+	// Channel untuk Ctrl+C
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+
+	// Jalankan server di goroutine
+	go func() {
+		port := cfg.AppPort
+		log.Printf("🚀 Server is running on http://localhost:%s\n", port)
+		if err := app.Listen(":" + port); err != nil {
+			log.Fatalf("❌ Server failed: %v", err)
+		}
+	}()
+
+	// Tunggu Ctrl+C
+	<-c
+	fmt.Println("\n🛑 Server stopped gracefully.")
+	os.Exit(0)
 }

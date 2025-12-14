@@ -1,7 +1,6 @@
 package database
 
 import (
-	"context"
 	"database/sql"
 	"log"
 
@@ -10,17 +9,18 @@ import (
 
 var DB *sql.DB
 
-func Connect(dsn string) {
-	conn, err := sql.Open("postgres", dsn)
+func Connect(dsn string) *sql.DB {
+	db, err := sql.Open("postgres", dsn)
 	if err != nil {
-		log.Fatal("❌ Failed connecting to DB:", err)
+		log.Fatal("❌ Failed to connect DB:", err)
 	}
 
-	// Test connection
-	if err := conn.PingContext(context.Background()); err != nil {
-		log.Fatal("❌ Database NOT reachable:", err)
+	// Test koneksi
+	if err := db.Ping(); err != nil {
+		log.Fatal("❌ DB ping failed:", err)
 	}
 
-	log.Println("✅ PostgreSQL Connected Successfully!")
-	DB = conn
+	DB = db
+	log.Println("✅ Database connected")
+	return db
 }
