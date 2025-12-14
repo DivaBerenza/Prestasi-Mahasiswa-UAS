@@ -92,4 +92,32 @@ func (r *UserRepository) GetAllUsers() ([]*model.User, error) {
 	return users, nil
 }
 
+// GetUserByID mengambil user berdasarkan UUID
+func (r *UserRepository) GetUserByID(id string) (*model.User, error) {
+	row := r.DB.QueryRow(`
+		SELECT id, username, email, password, full_name, role_id, is_active
+		FROM users
+		WHERE id = $1
+	`, id)
+
+	var u model.User
+	err := row.Scan(
+		&u.ID,
+		&u.Username,
+		&u.Email,
+		&u.Password,
+		&u.FullName,
+		&u.RoleID,
+		&u.IsActive,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errors.New("user not found")
+		}
+		return nil, err
+	}
+
+	return &u, nil
+}
+
 

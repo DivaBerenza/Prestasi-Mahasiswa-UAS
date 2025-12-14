@@ -1,4 +1,3 @@
-// middleware/rbac.go
 package middleware
 
 import (
@@ -9,10 +8,9 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-// RBACMiddleware menerima permission yang dibutuhkan sebagai parameter
+// RBACMiddleware menerima permission yang dibutuhkan
 func RBACMiddleware(requiredPerm string) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		// Ambil header Authorization
 		authHeader := c.Get("Authorization")
 		if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
@@ -20,7 +18,6 @@ func RBACMiddleware(requiredPerm string) fiber.Handler {
 			})
 		}
 
-		// Ambil token
 		tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
 		claims, err := utils.ValidateJWT(tokenStr)
 		if err != nil {
@@ -29,7 +26,7 @@ func RBACMiddleware(requiredPerm string) fiber.Handler {
 			})
 		}
 
-		// Simpan data user di Locals Fiber agar bisa diakses di service
+		// Simpan data user di Locals Fiber
 		c.Locals("userID", claims.UserID)
 		c.Locals("roleID", claims.RoleID)
 		c.Locals("permissions", claims.Permissions)
@@ -43,14 +40,22 @@ func RBACMiddleware(requiredPerm string) fiber.Handler {
 					break
 				}
 			}
+
 			if !hasPerm {
+				// Pesan khusus untuk user:manage
+				if requiredPerm == "user:manage" {
+					return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+						"error": "Anda tidak memiliki akses",
+					})
+				}
+
+				// Default error
 				return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
 					"error": "Insufficient permissions",
 				})
 			}
 		}
 
-		// Lanjut ke handler berikutnya
 		return c.Next()
 	}
 }
