@@ -27,7 +27,7 @@ func UserRoute(app *fiber.App, repo *repository.UserRepository) {
 	})
 
 	// GET user by ID - admin dan user bisa baca sendiri
-	users.Get("/:id", middleware.RBACMiddleware("user:read"), func(c *fiber.Ctx) error {
+	users.Get("/:id", middleware.RBACMiddleware("user:manage"), func(c *fiber.Ctx) error {
 		return service.GetUserByID(c, repo)
 	})
 

@@ -35,6 +35,7 @@ func GetAllUsers(c *fiber.Ctx, repo *repository.UserRepository) error {
 
 func GetUserByID(c *fiber.Ctx, repo *repository.UserRepository) error {
 	id := c.Params("id")
+
 	user, err := repo.GetUserByID(id)
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
@@ -42,15 +43,7 @@ func GetUserByID(c *fiber.Ctx, repo *repository.UserRepository) error {
 		})
 	}
 
-	// Jika bukan admin, hanya bisa lihat sendiri
-	roleID := c.Locals("roleID").(string)
-	userID := c.Locals("userID").(string)
-	if roleID != "admin-role-uuid" && user.ID.String() != userID {
-		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
-			"error": "Insufficient permissions",
-		})
-	}
-
+	// User sudah diizinkan oleh middleware, langsung return data
 	return c.JSON(fiber.Map{
 		"status": "success",
 		"data": map[string]interface{}{
@@ -63,3 +56,4 @@ func GetUserByID(c *fiber.Ctx, repo *repository.UserRepository) error {
 		},
 	})
 }
+
