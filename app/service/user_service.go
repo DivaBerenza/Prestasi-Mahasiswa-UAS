@@ -121,3 +121,65 @@ func CreateUser(c *fiber.Ctx, repo *repository.UserRepository) error {
 		},
 	})
 }
+
+func UpdateUser(c *fiber.Ctx, repo *repository.UserRepository) error {
+	// Ambil ID dari URL
+	idParam := c.Params("id")
+	userID, err := uuid.Parse(idParam)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid user ID",
+		})
+	}
+
+	// Parse body JSON
+	var input struct {
+		Username string `json:"username"`
+		Email    string `json:"email"`
+		FullName string `json:"fullName"`
+		RoleID   string `json:"roleId"`
+		IsActive bool   `json:"isActive"`
+	}
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid request body",
+		})
+	}
+
+	// Parse RoleID ke uuid.UUID
+	roleUUID, err := uuid.Parse(input.RoleID)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid roleId",
+		})
+	}
+
+	user := &model.User{
+		ID:       userID,
+		Username: input.Username,
+		Email:    input.Email,
+		FullName: input.FullName,
+		RoleID:   roleUUID,
+		IsActive: input.IsActive,
+	}
+
+	updatedUser, err := repo.UpdateUser(user)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "failed to update user",
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"status": "success",
+		"data": map[string]interface{}{
+			"id":       updatedUser.ID,
+			"username": updatedUser.Username,
+			"email":    updatedUser.Email,
+			"fullName": updatedUser.FullName,
+			"roleId":   updatedUser.RoleID,
+			"isActive": updatedUser.IsActive,
+		},
+	})
+}
+

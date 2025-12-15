@@ -161,6 +161,44 @@ func (r *UserRepository) CreateUser(user *model.User) (*model.User, error) {
 	return newUser, nil
 }
 
+func (r *UserRepository) UpdateUser(user *model.User) (*model.User, error) {
+	query := `
+		UPDATE users
+		SET username = $1,
+		    email = $2,
+		    full_name = $3,
+		    role_id = $4,
+		    is_active = $5,
+		    updated_at = NOW()
+		WHERE id = $6
+		RETURNING id, username, email, full_name, role_id, is_active, created_at, updated_at
+	`
+
+	updatedUser := &model.User{}
+	err := r.DB.QueryRow(
+		query,
+		user.Username,
+		user.Email,
+		user.FullName,
+		user.RoleID,
+		user.IsActive,
+		user.ID,
+	).Scan(
+		&updatedUser.ID,
+		&updatedUser.Username,
+		&updatedUser.Email,
+		&updatedUser.FullName,
+		&updatedUser.RoleID,
+		&updatedUser.IsActive,
+		&updatedUser.CreatedAt,
+		&updatedUser.UpdatedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return updatedUser, nil
+}
 
 
 
