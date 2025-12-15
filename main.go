@@ -23,8 +23,14 @@ func main() {
 	db := database.Connect(cfg.DB_DSN)
 	fmt.Println("✅ Database connected successfully!")
 
+	database.ConnectMongo()
+	fmt.Println("✅ MongoDB connected successfully!")
+
+	// =========================
+
 	// Init repository
 	userRepo := repository.NewUserRepository(db)
+	achievementRepo := repository.NewAchievementRepository(database.MongoDB)
 
 	// Init Fiber
 	app := fiber.New()
@@ -45,6 +51,8 @@ func main() {
 
 	// User route (CRUD users, admin only)
 	route.UserRoute(app, userRepo)
+
+	route.AchievementRoute(app, achievementRepo)
 
 	// Channel untuk Ctrl+C
 	c := make(chan os.Signal, 1)

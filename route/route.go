@@ -4,7 +4,7 @@ import (
 	"UAS/app/repository"
 	"UAS/app/service"
 	"UAS/middleware"
-
+	
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -64,3 +64,11 @@ func UserRoute(app *fiber.App, repo *repository.UserRepository) {
 	return service.UpdatePassword(c, repo)
 	})
 }
+
+func AchievementRoute(app *fiber.App, repo *repository.AchievementRepository) {
+	ach := app.Group("/api/v1/achievements")
+	ach.Get("/", func(c *fiber.Ctx) error {
+		return service.ListAchievements(c, repo)
+	})
+}
+
