@@ -51,3 +51,46 @@ func Login(c *fiber.Ctx, repo *repository.UserRepository) error {
 		},
 	})
 }
+
+func RefreshToken(c *fiber.Ctx, repo *repository.UserRepository) error {
+	// Ambil refresh token dari body
+	var body struct {
+		Token string `json:"refreshToken"`
+	}
+	if err := c.BodyParser(&body); err != nil || body.Token == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "refresh token required",
+		})
+	}
+
+	// Validasi token
+	claims, err := utils.ValidateJWT(body.Token)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "invalid or expired refresh token",
+		})
+	}
+
+	// Ambil user dari DB
+	user, err := repo.GetUserByID(claims.UserID)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "user not found",
+		})
+	}
+
+	// Generate token baru
+	token, err := utils.GenerateJWT(user.ID.String(), user.RoleID.String(), claims.Permissions)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "failed to generate token",
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"status": "success",
+		"data": fiber.Map{
+			"token": token,
+		},
+	})
+}

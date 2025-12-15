@@ -15,6 +15,11 @@ func AuthRoute(app *fiber.App, repo *repository.UserRepository) {
 	auth.Post("/login", func(c *fiber.Ctx) error {
 		return service.Login(c, repo)
 	})
+
+	auth.Post("/refresh", func(c *fiber.Ctx) error {
+	return service.RefreshToken(c, repo)
+	})
+
 }
 
 // UserRoute menangani CRUD user (admin only)
