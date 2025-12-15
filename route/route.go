@@ -4,7 +4,7 @@ import (
 	"UAS/app/repository"
 	"UAS/app/service"
 	"UAS/middleware"
-	
+
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -70,5 +70,10 @@ func AchievementRoute(app *fiber.App, repo *repository.AchievementRepository) {
 	ach.Get("/", func(c *fiber.Ctx) error {
 		return service.ListAchievements(c, repo)
 	})
+
+	ach.Get("/:id", func(c *fiber.Ctx) error {
+		return service.GetAchievementDetail(c, repo) 
+	})
+
 }
 

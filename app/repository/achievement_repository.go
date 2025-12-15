@@ -4,10 +4,12 @@ import (
 	"context"
 	"time"
 
+
 	"UAS/app/model"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options" 
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/bson/primitive" 
 )
 
 type AchievementRepository struct {
@@ -59,4 +61,22 @@ func (r *AchievementRepository) GetAchievements(role, studentId, status, achType
 
 	return achievements, nil
 }
+
+func (r *AchievementRepository) GetAchievementByID(id string) (*model.Achievement, error) {
+    ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+    defer cancel()
+
+    objID, err := primitive.ObjectIDFromHex(id)
+    if err != nil {
+        return nil, err
+    }
+
+    var achievement model.Achievement
+    if err := r.Collection.FindOne(ctx, bson.M{"_id": objID}).Decode(&achievement); err != nil {
+        return nil, err
+    }
+
+    return &achievement, nil
+}
+
 

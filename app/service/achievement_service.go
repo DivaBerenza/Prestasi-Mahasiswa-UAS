@@ -50,3 +50,20 @@ func ListAchievements(c *fiber.Ctx, repo *repository.AchievementRepository) erro
 		},
 	})
 }
+
+func GetAchievementDetail(c *fiber.Ctx, repo *repository.AchievementRepository) error {
+    id := c.Params("id")
+
+    achievement, err := repo.GetAchievementByID(id)
+    if err != nil {
+        return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+            "message": "Achievement not found",
+            "error":   err.Error(),
+        })
+    }
+
+    return c.JSON(fiber.Map{
+        "data": achievement,
+    })
+}
+
