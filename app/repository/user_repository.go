@@ -3,8 +3,12 @@ package repository
 import (
 	"database/sql"
 	"errors"
+	// "time"
 
 	"UAS/app/model"
+	"github.com/google/uuid"
+
+	_ "github.com/lib/pq"
 )
 
 type UserRepository struct {
@@ -74,6 +78,7 @@ func (r *UserRepository) GetAllUsers() ([]*model.User, error) {
 	rows, err := r.DB.Query(`
 		SELECT id, username, email, full_name, role_id, is_active
 		FROM users
+		ORDER BY created_at ASC
 	`)
 	if err != nil {
 		return nil, err
@@ -119,5 +124,43 @@ func (r *UserRepository) GetUserByID(id string) (*model.User, error) {
 
 	return &u, nil
 }
+
+func (r *UserRepository) CreateUser(user *model.User) (*model.User, error) {
+	query := `
+		INSERT INTO users (
+			id, username, email, password, full_name, role_id, is_active
+		) VALUES ($1, $2, $3, $4, $5, $6, $7)
+		RETURNING id, username, email, full_name, role_id, is_active, created_at, updated_at
+	`
+	user.ID = uuid.New()
+
+	newUser := &model.User{}
+	err := r.DB.QueryRow(
+		query,
+		user.ID,
+		user.Username,
+		user.Email,
+		user.Password,
+		user.FullName,
+		user.RoleID,
+		user.IsActive,
+	).Scan(
+		&newUser.ID,
+		&newUser.Username,
+		&newUser.Email,
+		&newUser.FullName,
+		&newUser.RoleID,
+		&newUser.IsActive,
+		&newUser.CreatedAt,
+		&newUser.UpdatedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return newUser, nil
+}
+
+
 
 

@@ -31,15 +31,10 @@ func UserRoute(app *fiber.App, repo *repository.UserRepository) {
 		return service.GetUserByID(c, repo)
 	})
 
-	// // GET user by ID
-	// users.Get("/:id", middleware.RBACMiddleware("user:read"), func(c *fiber.Ctx) error {
-	// 	return service.GetUserByID(c, repo)
-	// })
-
-	// // POST create user
-	// users.Post("/", middleware.RBACMiddleware("user:create"), func(c *fiber.Ctx) error {
-	// 	return service.CreateUser(c, repo)
-	// })
+	// POST create user
+	users.Post("/", middleware.RBACMiddleware("user:manage"), func(c *fiber.Ctx) error {
+		return service.CreateUser(c, repo)
+	})
 
 	// // PUT update user
 	// users.Put("/:id", middleware.RBACMiddleware("user:update"), func(c *fiber.Ctx) error {

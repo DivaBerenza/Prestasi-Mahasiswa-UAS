@@ -3,7 +3,11 @@ package service
 
 import (
 	"github.com/gofiber/fiber/v2"
+	
 	"UAS/app/repository"
+	"UAS/app/model"
+	"UAS/app/utils"
+	"github.com/google/uuid"
 )
 
 func GetAllUsers(c *fiber.Ctx, repo *repository.UserRepository) error {
@@ -57,3 +61,63 @@ func GetUserByID(c *fiber.Ctx, repo *repository.UserRepository) error {
 	})
 }
 
+func CreateUser(c *fiber.Ctx, repo *repository.UserRepository) error {
+	var input struct {
+		Username string `json:"username"`
+		Email    string `json:"email"`
+		Password string `json:"password"`
+		FullName string `json:"fullName"`
+		RoleID   string `json:"roleId"`  // masih string dari JSON
+		IsActive bool   `json:"isActive"`
+	}
+
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid request body",
+		})
+	}
+
+	// Hash password
+	hashedPassword, err := utils.HashPassword(input.Password)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "failed to hash password",
+		})
+	}
+
+	// Parse RoleID string ke uuid.UUID
+	roleUUID, err := uuid.Parse(input.RoleID)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid roleId",
+		})
+	}
+
+	user := &model.User{
+		Username: input.Username,
+		Email:    input.Email,
+		Password: hashedPassword,
+		FullName: input.FullName,
+		RoleID:   roleUUID,
+		IsActive: input.IsActive,
+	}
+
+	newUser, err := repo.CreateUser(user)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "failed to create user",
+		})
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"status": "success",
+		"data": map[string]interface{}{
+			"id":       newUser.ID,
+			"username": newUser.Username,
+			"email":    newUser.Email,
+			"fullName": newUser.FullName,
+			"roleId":   newUser.RoleID,
+			"isActive": newUser.IsActive,
+		},
+	})
+}
