@@ -41,10 +41,10 @@ func UserRoute(app *fiber.App, repo *repository.UserRepository) {
 		return service.UpdateUser(c, repo)
 	})
 
-	// // DELETE user
-	// users.Delete("/:id", middleware.RBACMiddleware("user:delete"), func(c *fiber.Ctx) error {
-	// 	return service.DeleteUser(c, repo)
-	// })
+	// DELETE user
+	users.Delete("/:id", middleware.RBACMiddleware("user:manage"), func(c *fiber.Ctx) error {
+		return service.DeleteUser(c, repo)
+	})
 
 	// // PUT assign role
 	// users.Put("/:id/role", middleware.RBACMiddleware("user:assign_role"), func(c *fiber.Ctx) error {

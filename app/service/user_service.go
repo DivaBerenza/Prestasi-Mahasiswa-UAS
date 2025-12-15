@@ -183,3 +183,31 @@ func UpdateUser(c *fiber.Ctx, repo *repository.UserRepository) error {
 	})
 }
 
+func DeleteUser(c *fiber.Ctx, repo *repository.UserRepository) error {
+	// Parse ID
+	idParam := c.Params("id")
+	userID, err := uuid.Parse(idParam)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid user ID",
+		})
+	}
+
+	// Delete user
+	err = repo.DeleteUser(userID)
+	if err != nil {
+		if err.Error() == "user not found" {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error": "user not found",
+			})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "failed to delete user",
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"status": "success",
+	})
+}
+

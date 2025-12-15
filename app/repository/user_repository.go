@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	// "time"
+	"fmt"
 
 	"UAS/app/model"
 	"github.com/google/uuid"
@@ -199,6 +200,29 @@ func (r *UserRepository) UpdateUser(user *model.User) (*model.User, error) {
 
 	return updatedUser, nil
 }
+
+func (r *UserRepository) DeleteUser(id uuid.UUID) error {
+	query := `
+		DELETE FROM users
+		WHERE id = $1
+	`
+	res, err := r.DB.Exec(query, id)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return fmt.Errorf("user not found")
+	}
+
+	return nil
+}
+
 
 
 
