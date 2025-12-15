@@ -223,6 +223,37 @@ func (r *UserRepository) DeleteUser(id uuid.UUID) error {
 	return nil
 }
 
+func (r *UserRepository) UpdatePassword(userID uuid.UUID, hashedPassword string) (*model.User, error) {
+	query := `
+		UPDATE users
+		SET password = $1,
+		    updated_at = NOW()
+		WHERE id = $2
+		RETURNING id, username, email, full_name, role_id, is_active, created_at, updated_at
+	`
+
+	updatedUser := &model.User{}
+	err := r.DB.QueryRow(query, hashedPassword, userID).Scan(
+		&updatedUser.ID,
+		&updatedUser.Username,
+		&updatedUser.Email,
+		&updatedUser.FullName,
+		&updatedUser.RoleID,
+		&updatedUser.IsActive,
+		&updatedUser.CreatedAt,
+		&updatedUser.UpdatedAt,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("user not found")
+		}
+		return nil, err
+	}
+
+	return updatedUser, nil
+}
+
+
 
 
 

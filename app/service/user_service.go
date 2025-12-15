@@ -211,3 +211,59 @@ func DeleteUser(c *fiber.Ctx, repo *repository.UserRepository) error {
 	})
 }
 
+
+func UpdatePassword(c *fiber.Ctx, repo *repository.UserRepository) error {
+	// Parse user ID
+	idParam := c.Params("id")
+	userID, err := uuid.Parse(idParam)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid user ID",
+		})
+	}
+
+	// Parse body JSON
+	var body struct {
+		Password string `json:"password"`
+	}
+	if err := c.BodyParser(&body); err != nil || body.Password == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid password",
+		})
+	}
+
+	// Hash password
+	hashedPassword, err := utils.HashPassword(body.Password)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "failed to hash password",
+		})
+	}
+
+	// Update password di repository
+	updatedUser, err := repo.UpdatePassword(userID, hashedPassword)
+	if err != nil {
+		if err.Error() == "user not found" {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error": "user not found",
+			})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "failed to update password",
+		})
+	}
+
+	// Response tanpa mengirim password
+	return c.JSON(fiber.Map{
+		"status": "success",
+		"data": map[string]interface{}{
+			"id":       updatedUser.ID,
+			"username": updatedUser.Username,
+			"email":    updatedUser.Email,
+			"fullName": updatedUser.FullName,
+			"roleId":   updatedUser.RoleID,
+			"isActive": updatedUser.IsActive,
+		},
+	})
+}
+

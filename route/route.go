@@ -46,8 +46,8 @@ func UserRoute(app *fiber.App, repo *repository.UserRepository) {
 		return service.DeleteUser(c, repo)
 	})
 
-	// // PUT assign role
-	// users.Put("/:id/role", middleware.RBACMiddleware("user:assign_role"), func(c *fiber.Ctx) error {
-	// 	return service.AssignRole(c, repo)
-	// })
+	// // PUT untuk update password
+	users.Put("/:id/role", middleware.RBACMiddleware("user:manage"),func(c *fiber.Ctx) error {
+	return service.UpdatePassword(c, repo)
+	})
 }
