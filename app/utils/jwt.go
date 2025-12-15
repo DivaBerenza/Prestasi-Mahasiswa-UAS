@@ -3,15 +3,19 @@ package utils
 import (
 	"errors"
 	"os"
+	"strings"
+	"sync"
 	"time"
 
 	"UAS/app/model"
 
+
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var JWTSecret = []byte(os.Getenv("API_KEY")) // pastikan API_KEY di .env
+var JWTSecret = []byte(os.Getenv("API_KEY"))
 
+// ----------------- JWT -----------------
 func GenerateJWT(userID, roleID string, perms []string) (string, error) {
 	claims := model.JWTClaims{
 		UserID:      userID,
@@ -28,6 +32,10 @@ func GenerateJWT(userID, roleID string, perms []string) (string, error) {
 }
 
 func ValidateJWT(tokenStr string) (*model.JWTClaims, error) {
+	if IsBlacklisted(tokenStr) {
+		return nil, errors.New("token has been logged out")
+	}
+
 	token, err := jwt.ParseWithClaims(tokenStr, &model.JWTClaims{}, func(t *jwt.Token) (interface{}, error) {
 		return JWTSecret, nil
 	})
@@ -41,4 +49,40 @@ func ValidateJWT(tokenStr string) (*model.JWTClaims, error) {
 	}
 
 	return claims, nil
+}
+
+// ----------------- BLACKLIST -----------------
+var blacklist = make(map[string]time.Time)
+var mu sync.Mutex
+
+func AddToBlacklist(token string, exp time.Time) {
+	mu.Lock()
+	defer mu.Unlock()
+	blacklist[token] = exp
+}
+
+func IsBlacklisted(token string) bool {
+	mu.Lock()
+	defer mu.Unlock()
+	exp, exists := blacklist[token]
+	if !exists {
+		return false
+	}
+	if time.Now().After(exp) {
+		delete(blacklist, token)
+		return false
+	}
+	return true
+}
+
+// ----------------- UTILITY -----------------
+func ExtractTokenFromHeader(authHeader string) (string, error) {
+	if authHeader == "" {
+		return "", errors.New("missing token")
+	}
+	parts := strings.Split(authHeader, " ")
+	if len(parts) != 2 || parts[0] != "Bearer" {
+		return "", errors.New("invalid authorization header")
+	}
+	return parts[1], nil
 }

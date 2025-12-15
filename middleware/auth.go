@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"UAS/app/utils"
+	"github.com/gofiber/fiber/v2"
 )
 
 type ctxKey string
@@ -38,4 +39,20 @@ func AuthMiddleware(next http.Handler) http.Handler {
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
+}
+
+func JWTBlacklistMiddleware() fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		authHeader := c.Get("Authorization")
+		token, err := utils.ExtractTokenFromHeader(authHeader)
+		if err != nil {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
+		}
+
+		if _, err := utils.ValidateJWT(token); err != nil {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
+		}
+
+		return c.Next()
+	}
 }

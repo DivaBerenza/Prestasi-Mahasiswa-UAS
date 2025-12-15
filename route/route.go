@@ -16,15 +16,19 @@ func AuthRoute(app *fiber.App, repo *repository.UserRepository) {
 		return service.Login(c, repo)
 	})
 
-	auth.Post("/refresh", func(c *fiber.Ctx) error {
-	return service.RefreshToken(c, repo)
+	auth.Post("/refresh", middleware.JWTBlacklistMiddleware() ,func(c *fiber.Ctx) error {
+		return service.RefreshToken(c, repo)
 	})
+
+	auth.Post("/logout", service.Logout)
 
 }
 
 // UserRoute menangani CRUD user (admin only)
 func UserRoute(app *fiber.App, repo *repository.UserRepository) {
 	users := app.Group("/api/v1/users")
+
+	users.Use(middleware.JWTBlacklistMiddleware())
 
 	// GET all users - hanya admin dengan permission user:read
 	users.Get("/", middleware.RBACMiddleware("user:manage"), func(c *fiber.Ctx) error {

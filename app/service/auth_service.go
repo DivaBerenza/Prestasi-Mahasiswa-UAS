@@ -94,3 +94,26 @@ func RefreshToken(c *fiber.Ctx, repo *repository.UserRepository) error {
 		},
 	})
 }
+
+func Logout(c *fiber.Ctx) error {
+	authHeader := c.Get("Authorization")
+	token, err := utils.ExtractTokenFromHeader(authHeader)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	claims, err := utils.ValidateJWT(token)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	// Masukkan token ke blacklist
+	utils.AddToBlacklist(token, claims.ExpiresAt.Time)
+
+	return c.JSON(fiber.Map{
+		"status":  "success",
+		"message": "logout berhasil",
+	})
+}
+
+
