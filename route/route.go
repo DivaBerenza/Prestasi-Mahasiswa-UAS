@@ -20,6 +20,10 @@ func AuthRoute(app *fiber.App, repo *repository.UserRepository) {
 		return service.RefreshToken(c, repo)
 	})
 
+	auth.Get("/profile", middleware.JWTBlacklistMiddleware(), func(c *fiber.Ctx) error {
+		return service.Profile(c, repo)
+	})
+
 	auth.Post("/logout", service.Logout)
 
 }
