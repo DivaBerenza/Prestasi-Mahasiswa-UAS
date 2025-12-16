@@ -76,3 +76,39 @@ func (r *StudentRepository) GetByID(studentID string) (*model.StudentResponse, e
 	return &s, nil
 }
 
+// UpdateAdvisor assign atau update advisor_id mahasiswa
+func (r *StudentRepository) UpdateAdvisor(studentID string, advisorID string) (*model.StudentResponse, error) {
+	query := `
+		UPDATE students
+		SET advisor_id = $1
+		WHERE id = $2
+		RETURNING id, user_id, student_id, program_study, academic_year, advisor_id
+	`
+
+	row := r.DB.QueryRow(query, advisorID, studentID)
+
+	var s model.StudentResponse
+	err := row.Scan(
+		&s.ID,
+		&s.UserID,
+		&s.StudentID,
+		&s.ProgramStudy,
+		&s.AcademicYear,
+		&s.AdvisorID,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("student not found")
+		}
+		return nil, err
+	}
+
+	// Ambil full_name dari tabel users
+	err = r.DB.QueryRow(`SELECT full_name FROM users WHERE id = $1`, s.UserID).Scan(&s.FullName)
+	if err != nil {
+		return nil, err
+	}
+
+	return &s, nil
+}
+
