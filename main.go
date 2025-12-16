@@ -31,6 +31,11 @@ func main() {
 	// Init repository
 	userRepo := repository.NewUserRepository(db)
 	achievementRepo := repository.NewAchievementRepository(database.MongoDB)
+	refRepo := repository.NewAchievementReferenceRepository(db)
+	studentRepo := repository.NewStudentRepository(database.DB)
+	lecturerRepo := repository.NewLecturerRepository(db)
+
+
 
 	// Init Fiber
 	app := fiber.New()
@@ -52,7 +57,10 @@ func main() {
 	// User route (CRUD users, admin only)
 	route.UserRoute(app, userRepo)
 
-	route.AchievementRoute(app, achievementRepo)
+	route.AchievementRoute(app, achievementRepo, refRepo, studentRepo)
+
+	route.StudentRoute(app, studentRepo)
+	route.LecturerRoute(app, lecturerRepo)
 
 	// Channel untuk Ctrl+C
 	c := make(chan os.Signal, 1)

@@ -67,30 +67,31 @@ func CreateUser(c *fiber.Ctx, repo *repository.UserRepository) error {
 		Email    string `json:"email"`
 		Password string `json:"password"`
 		FullName string `json:"fullName"`
-		RoleID   string `json:"roleId"`  // masih string dari JSON
+		RoleID   string `json:"roleId"`
 		IsActive bool   `json:"isActive"`
+
+		// lecturer
+		LecturerID string `json:"lecturerId"`
+		Department string `json:"department"`
+
+		// student
+		StudentID    string `json:"studentId"`
+		ProgramStudy string `json:"programStudy"`
+		AcademicYear string `json:"academicYear"`
 	}
 
 	if err := c.BodyParser(&input); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "invalid request body",
-		})
+		return c.Status(400).JSON(fiber.Map{"error": "invalid request body"})
 	}
 
-	// Hash password
 	hashedPassword, err := utils.HashPassword(input.Password)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "failed to hash password",
-		})
+		return c.Status(500).JSON(fiber.Map{"error": "hash failed"})
 	}
 
-	// Parse RoleID string ke uuid.UUID
 	roleUUID, err := uuid.Parse(input.RoleID)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "invalid roleId",
-		})
+		return c.Status(400).JSON(fiber.Map{"error": "invalid roleId"})
 	}
 
 	user := &model.User{
@@ -102,25 +103,51 @@ func CreateUser(c *fiber.Ctx, repo *repository.UserRepository) error {
 		IsActive: input.IsActive,
 	}
 
-	newUser, err := repo.CreateUser(user)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "failed to create user",
-		})
+	// ===== lecturer ptr =====
+	var lecturerIDPtr *string
+	var departmentPtr *string
+
+	if input.LecturerID != "" {
+		lecturerIDPtr = &input.LecturerID
+	}
+	if input.Department != "" {
+		departmentPtr = &input.Department
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+	// ===== student ptr =====
+	var studentIDPtr *string
+	var programStudyPtr *string
+	var academicYearPtr *string
+
+	if input.StudentID != "" {
+		studentIDPtr = &input.StudentID
+	}
+	if input.ProgramStudy != "" {
+		programStudyPtr = &input.ProgramStudy
+	}
+	if input.AcademicYear != "" {
+		academicYearPtr = &input.AcademicYear
+	}
+
+	newUser, err := repo.CreateUser(
+		user,
+		lecturerIDPtr,
+		departmentPtr,
+		studentIDPtr,
+		programStudyPtr,
+		academicYearPtr,
+	)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.Status(201).JSON(fiber.Map{
 		"status": "success",
-		"data": map[string]interface{}{
-			"id":       newUser.ID,
-			"username": newUser.Username,
-			"email":    newUser.Email,
-			"fullName": newUser.FullName,
-			"roleId":   newUser.RoleID,
-			"isActive": newUser.IsActive,
-		},
+		"data":   newUser,
 	})
 }
+
+
 
 func UpdateUser(c *fiber.Ctx, repo *repository.UserRepository) error {
 	// Ambil ID dari URL

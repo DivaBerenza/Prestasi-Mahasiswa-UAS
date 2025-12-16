@@ -5,6 +5,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"UAS/app/repository"
+	"UAS/app/model"
 )
 
 func ListAchievements(c *fiber.Ctx, repo *repository.AchievementRepository) error {
@@ -67,3 +68,61 @@ func GetAchievementDetail(c *fiber.Ctx, repo *repository.AchievementRepository) 
     })
 }
 
+func CreateAchievement(
+	c *fiber.Ctx,
+	achievementRepo *repository.AchievementRepository,
+	refRepo *repository.AchievementReferenceRepository,
+	studentRepo *repository.StudentRepository,
+) error {
+	// Ambil user_id dari JWT
+	userIDValue := c.Locals("user_id")
+	userID, ok := userIDValue.(string)
+	if !ok || userID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": "Unauthorized: missing user_id",
+		})
+	}
+
+	// Ambil student record dari PostgreSQL
+	student, err := studentRepo.GetByUserID(userID)
+	if err != nil || student == nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"message": "Student not found",
+			"error":   err.Error(),
+		})
+	}
+
+	// Parse body request
+	var body model.Achievement
+	if err := c.BodyParser(&body); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid request body",
+			"error":   err.Error(),
+		})
+	}
+
+	// Set studentID dan status default
+	body.StudentID = student.ID.String()
+	body.Status = "draft"
+
+	// Simpan ke MongoDB
+	achievement, err := achievementRepo.CreateAchievement(&body)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Failed to create achievement",
+			"error":   err.Error(),
+		})
+	}
+
+	// Simpan reference ke PostgreSQL
+	if err := refRepo.Create(student.ID.String(), achievement.ID.Hex()); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Failed to create achievement reference",
+			"error":   err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"data": achievement,
+	})
+}

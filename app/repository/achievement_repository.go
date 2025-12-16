@@ -79,4 +79,21 @@ func (r *AchievementRepository) GetAchievementByID(id string) (*model.Achievemen
     return &achievement, nil
 }
 
+func (r *AchievementRepository) CreateAchievement(a *model.Achievement) (*model.Achievement, error) {
+    ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+    defer cancel()
+
+    a.ID = primitive.NewObjectID()
+    a.CreatedAt = time.Now()
+    a.UpdatedAt = time.Now()
+    a.Status = "draft" // status awal
+
+    _, err := r.Collection.InsertOne(ctx, a)
+    if err != nil {
+        return nil, err
+    }
+    return a, nil
+}
+
+
 

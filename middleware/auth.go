@@ -41,6 +41,22 @@ func AuthMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+// func JWTBlacklistMiddleware() fiber.Handler {
+// 	return func(c *fiber.Ctx) error {
+// 		authHeader := c.Get("Authorization")
+// 		token, err := utils.ExtractTokenFromHeader(authHeader)
+// 		if err != nil {
+// 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
+// 		}
+
+// 		if _, err := utils.ValidateJWT(token); err != nil {
+// 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
+// 		}
+
+// 		return c.Next()
+// 	}
+// }
+
 func JWTBlacklistMiddleware() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		authHeader := c.Get("Authorization")
@@ -49,10 +65,17 @@ func JWTBlacklistMiddleware() fiber.Handler {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
 		}
 
-		if _, err := utils.ValidateJWT(token); err != nil {
+		claims, err := utils.ValidateJWT(token)
+		if err != nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
 		}
+
+		// Set ke context Fiber supaya service bisa ambil
+		c.Locals("user_id", claims.UserID)
+		c.Locals("role", claims.RoleID)
+		c.Locals("permissions", claims.Permissions)
 
 		return c.Next()
 	}
 }
+

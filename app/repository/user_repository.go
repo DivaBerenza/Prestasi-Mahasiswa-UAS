@@ -126,18 +126,30 @@ func (r *UserRepository) GetUserByID(id string) (*model.User, error) {
 	return &u, nil
 }
 
-func (r *UserRepository) CreateUser(user *model.User) (*model.User, error) {
-	query := `
-		INSERT INTO users (
-			id, username, email, password, full_name, role_id, is_active
-		) VALUES ($1, $2, $3, $4, $5, $6, $7)
-		RETURNING id, username, email, full_name, role_id, is_active, created_at, updated_at
-	`
+func (r *UserRepository) CreateUser(
+	user *model.User,
+	lecturerID *string,
+	department *string,
+	studentID *string,
+	programStudy *string,
+	academicYear *string,
+) (*model.User, error) {
+
+	tx, err := r.DB.Begin()
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
 	user.ID = uuid.New()
 
-	newUser := &model.User{}
-	err := r.DB.QueryRow(
-		query,
+	// ===== INSERT USER =====
+	err = tx.QueryRow(`
+		INSERT INTO users (
+			id, username, email, password, full_name, role_id, is_active
+		) VALUES ($1,$2,$3,$4,$5,$6,$7)
+		RETURNING created_at, updated_at
+	`,
 		user.ID,
 		user.Username,
 		user.Email,
@@ -145,22 +157,55 @@ func (r *UserRepository) CreateUser(user *model.User) (*model.User, error) {
 		user.FullName,
 		user.RoleID,
 		user.IsActive,
-	).Scan(
-		&newUser.ID,
-		&newUser.Username,
-		&newUser.Email,
-		&newUser.FullName,
-		&newUser.RoleID,
-		&newUser.IsActive,
-		&newUser.CreatedAt,
-		&newUser.UpdatedAt,
-	)
+	).Scan(&user.CreatedAt, &user.UpdatedAt)
+
 	if err != nil {
 		return nil, err
 	}
 
-	return newUser, nil
+	// ===== INSERT STUDENT =====
+	if studentID != nil {
+		_, err := tx.Exec(`
+			INSERT INTO students (
+				id, user_id, student_id, program_study, academic_year, advisor_id
+			) VALUES ($1,$2,$3,$4,$5,NULL)
+		`,
+			uuid.New(),
+			user.ID,
+			*studentID,
+			*programStudy,
+			*academicYear,
+		)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// ===== INSERT LECTURER (kalau ada) =====
+	if lecturerID != nil {
+		_, err := tx.Exec(`
+			INSERT INTO lecturers (
+				id, user_id, lecturer_id, department
+			) VALUES ($1,$2,$3,$4)
+		`,
+			uuid.New(),
+			user.ID,
+			*lecturerID,
+			*department,
+		)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+
+	return user, nil
 }
+
+
 
 func (r *UserRepository) UpdateUser(user *model.User) (*model.User, error) {
 	query := `
@@ -252,6 +297,15 @@ func (r *UserRepository) UpdatePassword(userID uuid.UUID, hashedPassword string)
 
 	return updatedUser, nil
 }
+
+func (r *UserRepository) GetRoleIDByName(name string) (uuid.UUID, error) {
+	var id uuid.UUID
+	err := r.DB.QueryRow(`
+		SELECT id FROM roles WHERE name = $1
+	`, name).Scan(&id)
+	return id, err
+}
+
 
 
 

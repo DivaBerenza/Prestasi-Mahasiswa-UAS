@@ -13,3 +13,5 @@ type Lecturer struct {
 	Department   string    `json:"department"`     // example: "Teknik Informatika"
 	CreatedAt  time.Time `json:"created_at"`
 }
+
+
