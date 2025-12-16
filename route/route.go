@@ -89,6 +89,9 @@ func StudentRoute(app *fiber.App, repo *repository.StudentRepository) {
 		return service.GetStudents(c, repo)
 	})
 
+	students.Get("/:id", func(c *fiber.Ctx) error {
+		return service.GetStudentByID(c, repo)
+	})
 	
 }
 

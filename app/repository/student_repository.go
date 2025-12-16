@@ -3,6 +3,7 @@ package repository
 import (
 	"UAS/app/model"
 	"database/sql"
+	"fmt"
 )
 
 type StudentRepository struct {
@@ -45,3 +46,33 @@ func (r *StudentRepository) GetAll() ([]model.StudentResponse, error) {
 
 	return students, nil
 }
+
+// GetStudentByID mengambil satu mahasiswa berdasarkan UUID student
+func (r *StudentRepository) GetByID(studentID string) (*model.StudentResponse, error) {
+	row := r.DB.QueryRow(`
+		SELECT s.id, s.user_id, s.student_id, u.full_name, s.program_study, s.academic_year, s.advisor_id
+		FROM students s
+		JOIN users u ON u.id = s.user_id
+		WHERE s.id = $1
+	`, studentID)
+
+	var s model.StudentResponse
+	err := row.Scan(
+		&s.ID,
+		&s.UserID,
+		&s.StudentID,
+		&s.FullName,
+		&s.ProgramStudy,
+		&s.AcademicYear,
+		&s.AdvisorID,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("student not found")
+		}
+		return nil, err
+	}
+
+	return &s, nil
+}
+
