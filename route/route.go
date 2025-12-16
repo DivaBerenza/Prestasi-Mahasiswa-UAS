@@ -75,27 +75,25 @@ func AchievementRoute(app *fiber.App, achievementRepo *repository.AchievementRep
 		return service.GetAchievementDetail(c, achievementRepo) 
 	})
 
-	ach.Post("/", middleware.JWTBlacklistMiddleware(),func(c *fiber.Ctx) error {
-    	return service.CreateAchievement(c, achievementRepo, refRepo, studentRepo)
-	})
+	// ach.Post("/", middleware.JWTBlacklistMiddleware(),func(c *fiber.Ctx) error {
+    // 	return service.CreateAchievement(c, achievementRepo, refRepo, studentRepo)
+	// })
 
 }
 
 func StudentRoute(app *fiber.App, repo *repository.StudentRepository) {
-	students := app.Group("/api/v1/students")
-
-	students.Use(middleware.JWTBlacklistMiddleware()) // jika perlu auth
+	students := app.Group("/api/v1/students", middleware.JWTBlacklistMiddleware())
 
 	// GET all students
 	students.Get("/", func(c *fiber.Ctx) error {
-		return service.ListStudents(c, repo)
+		return service.GetStudents(c, repo)
 	})
 
 	
 }
 
 func LecturerRoute(app *fiber.App, repo *repository.LecturerRepository) {
-	lec := app.Group("/api/v1/lecturers", middleware.LecturerOnly)
+	lec := app.Group("/api/v1/lecturers", middleware.JWTBlacklistMiddleware())
 
 	lec.Get("/", func(c *fiber.Ctx) error {
 		return service.GetLecturers(c, repo)
