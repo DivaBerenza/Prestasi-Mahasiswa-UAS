@@ -13,31 +13,62 @@ func NewLecturerRepository(db *sql.DB) *LecturerRepository {
 	return &LecturerRepository{DB: db}
 }
 
-func (r *LecturerRepository) GetAll() ([]model.Lecturer, error) {
+func (r *LecturerRepository) GetAll() ([]model.LecturerResponse, error) {
 	rows, err := r.DB.Query(`
-		SELECT id, user_id, lecturer_id, department, created_at
-		FROM lecturers
-		ORDER BY created_at ASC
+		SELECT l.id, l.user_id, u.full_name, l.lecturer_id, l.department, l.created_at
+		FROM lecturers l
+		JOIN users u ON u.id = l.user_id
+		ORDER BY l.created_at ASC
 	`)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var lecturers []model.Lecturer
+	var result []model.LecturerResponse
 	for rows.Next() {
-		var l model.Lecturer
+		var l model.LecturerResponse
 		if err := rows.Scan(
 			&l.ID,
 			&l.UserID,
+			&l.FullName,
 			&l.LecturerID,
 			&l.Department,
 			&l.CreatedAt,
 		); err != nil {
 			return nil, err
 		}
-		lecturers = append(lecturers, l)
+		result = append(result, l)
 	}
 
-	return lecturers, nil
+	return result, nil
+}
+
+func (r *LecturerRepository) GetAdvisees(lecturerID string) ([]model.AdviseeResponse, error) {
+	rows, err := r.DB.Query(`
+		SELECT s.student_id, u.full_name, s.program_study, s.academic_year
+		FROM students s
+		JOIN users u ON u.id = s.user_id
+		WHERE s.advisor_id = $1
+	`, lecturerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var advisees []model.AdviseeResponse
+	for rows.Next() {
+		var a model.AdviseeResponse
+		if err := rows.Scan(
+			&a.StudentID,
+			&a.FullName,
+			&a.ProgramStudy,
+			&a.AcademicYear,
+		); err != nil {
+			return nil, err
+		}
+		advisees = append(advisees, a)
+	}
+
+	return advisees, nil
 }

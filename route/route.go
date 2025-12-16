@@ -95,10 +95,14 @@ func StudentRoute(app *fiber.App, repo *repository.StudentRepository) {
 }
 
 func LecturerRoute(app *fiber.App, repo *repository.LecturerRepository) {
-	lec := app.Group("/api/v1/lecturers")
+	lec := app.Group("/api/v1/lecturers", middleware.LecturerOnly)
 
 	lec.Get("/", func(c *fiber.Ctx) error {
 		return service.GetLecturers(c, repo)
+	})
+
+	lec.Get("/:id/advisees", func(c *fiber.Ctx) error {
+		return service.GetLecturerAdvisees(c, repo)
 	})
 }
 

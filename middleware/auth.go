@@ -41,22 +41,6 @@ func AuthMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-// func JWTBlacklistMiddleware() fiber.Handler {
-// 	return func(c *fiber.Ctx) error {
-// 		authHeader := c.Get("Authorization")
-// 		token, err := utils.ExtractTokenFromHeader(authHeader)
-// 		if err != nil {
-// 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
-// 		}
-
-// 		if _, err := utils.ValidateJWT(token); err != nil {
-// 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
-// 		}
-
-// 		return c.Next()
-// 	}
-// }
-
 func JWTBlacklistMiddleware() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		authHeader := c.Get("Authorization")
@@ -78,4 +62,15 @@ func JWTBlacklistMiddleware() fiber.Handler {
 		return c.Next()
 	}
 }
+
+func LecturerOnly(c *fiber.Ctx) error {
+	role := c.Locals("role")
+	if role != "lecturer" {
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+			"error": "access denied: lecturer only",
+		})
+	}
+	return c.Next()
+}
+
 

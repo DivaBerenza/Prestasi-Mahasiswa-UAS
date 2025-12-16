@@ -14,4 +14,19 @@ type Lecturer struct {
 	CreatedAt  time.Time `json:"created_at"`
 }
 
+type LecturerResponse struct {
+	ID         uuid.UUID `json:"id"`
+	UserID     uuid.UUID `json:"user_id"`
+	FullName   string    `json:"full_name"`
+	LecturerID string    `json:"lecturer_id"`
+	Department string    `json:"department"`
+	CreatedAt  time.Time `json:"created_at"`
+}
+
+type AdviseeResponse struct {
+	StudentID    string `json:"student_id"`
+	FullName     string `json:"full_name"`
+	ProgramStudy string `json:"program_study"`
+	AcademicYear string `json:"academic_year"`
+}
 
