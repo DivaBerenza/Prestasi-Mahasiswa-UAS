@@ -27,3 +27,11 @@ type AchievementReference struct {
 	CreatedAt          time.Time         `json:"created_at"`
 	UpdatedAt          time.Time         `json:"updated_at"`
 }
+
+type AchievementStatusHistory struct {
+	Status        string     `json:"status"`
+	UpdatedAt     time.Time  `json:"updatedAt"`
+	VerifiedBy    *string    `json:"verifiedBy,omitempty"`
+	RejectionNote *string    `json:"rejectionNote,omitempty"`
+}
+

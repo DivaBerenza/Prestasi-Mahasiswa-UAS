@@ -27,7 +27,7 @@ type Achievement struct {
 
 type Attachment struct {
 	FileName   string    `bson:"fileName" json:"fileName"`
-	FileURL    string    `bson:"fileUrl" json:"fileUrl"`
+	FilePath    string    `bson:"filePath" json:"filePath"`
 	FileType   string    `bson:"fileType" json:"fileType"`
 	UploadedAt time.Time `bson:"uploadedAt" json:"uploadedAt"`
 }

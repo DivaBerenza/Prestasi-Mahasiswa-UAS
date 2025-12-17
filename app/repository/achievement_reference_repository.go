@@ -49,3 +49,110 @@ func (r *AchievementReferenceRepository) CreateReference(studentUUID uuid.UUID, 
 	return ref, nil
 }
 
+
+func (r *AchievementReferenceRepository) StatusHistory(mongoID string) (*model.AchievementStatusHistory, error) {
+	query := `
+		SELECT status, updated_at, verified_by, rejection_note
+		FROM achievement_references
+		WHERE mongo_achievement_id = $1
+	`
+
+	var h model.AchievementStatusHistory
+	err := r.DB.QueryRow(query, mongoID).Scan(
+		&h.Status,
+		&h.UpdatedAt,
+		&h.VerifiedBy,
+		&h.RejectionNote,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &h, nil
+}
+
+func (r *AchievementReferenceRepository) Submit(mongoID string) error {
+	now := time.Now()
+
+	query := `
+		UPDATE achievement_references
+		SET
+			status = $1,
+			submitted_at = $2,
+			updated_at = $2
+		WHERE mongo_achievement_id = $3
+	`
+
+	_, err := r.DB.Exec(
+		query,
+		model.StatusSubmitted,
+		now,
+		mongoID,
+	)
+
+	return err
+}
+
+func (r *AchievementReferenceRepository) Verify(
+	mongoID string,
+	verifiedBy uuid.UUID,
+) error {
+
+	now := time.Now()
+
+	query := `
+		UPDATE achievement_references
+		SET
+			status = $1,
+			verified_at = $2,
+			verified_by = $3,
+			updated_at = $2
+		WHERE mongo_achievement_id = $4
+	`
+
+	_, err := r.DB.Exec(
+		query,
+		model.StatusVerified,
+		now,
+		verifiedBy,
+		mongoID,
+	)
+
+	return err
+}
+
+func (r *AchievementReferenceRepository) Reject(
+	mongoID string,
+	rejectionNote string,
+) error {
+
+	now := time.Now()
+
+	query := `
+		UPDATE achievement_references
+		SET
+			status = $1,
+			verified_at = $2,
+			rejection_note = $3,
+			updated_at = $2
+		WHERE mongo_achievement_id = $4
+	`
+
+	_, err := r.DB.Exec(
+		query,
+		model.StatusRejected,
+		now,
+		rejectionNote,
+		mongoID,
+	)
+
+	return err
+}
+
+
+
+
+

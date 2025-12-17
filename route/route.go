@@ -80,6 +80,36 @@ func AchievementRoute(app *fiber.App, achievementRepo *repository.AchievementRep
 		return service.CreateAchievement(c, achievementRepo, refRepo, studentRepo)
 	})
 
+	ach.Put("/:id", middleware.RBACMiddleware("achievement:update"), func(c *fiber.Ctx) error {
+		return service.UpdateAchievement(c, achievementRepo, studentRepo)
+	})
+
+	ach.Delete("/:id", middleware.RBACMiddleware("achievement:delete"), func(c *fiber.Ctx) error {
+		return service.DeleteAchievement(c, achievementRepo, studentRepo)
+	})
+
+	// Submit for verification (Mahasiswa)
+	ach.Post("/:id/submit", middleware.RBACMiddleware("achievement:submit"), func(c *fiber.Ctx) error {
+		return service.SubmitAchievement(c, achievementRepo, refRepo, studentRepo)
+	})
+
+	// Verify & Reject (Dosen Wali)
+	ach.Post("/:id/verify", middleware.RBACMiddleware("achievement:verify"), func(c *fiber.Ctx) error {
+		return service.VerifyAchievement(c, refRepo)
+	})
+
+	ach.Post("/:id/reject", middleware.RBACMiddleware("achievement:verify"), func(c *fiber.Ctx) error {
+		return service.RejectAchievement(c, achievementRepo, refRepo)
+	}) 
+
+	// History & Attachments
+	ach.Get("/:id/history", middleware.RBACMiddleware("achievement:read", "user:manage"), func(c *fiber.Ctx) error {
+		return service.GetAchievementHistory(c, refRepo) // function service belum dibuat
+	})
+	
+	ach.Post("/:id/attachments", middleware.RBACMiddleware("achievement:update"), func(c *fiber.Ctx) error {
+		return service.UploadAchievementAttachment(c, achievementRepo) // function service belum dibuat
+	})
 
 }
 
@@ -98,6 +128,7 @@ func StudentRoute(app *fiber.App, repo *repository.StudentRepository) {
 	students.Put("/:id/advisor", middleware.RBACMiddleware("user:manage"),func(c *fiber.Ctx) error {
 		return service.UpdateStudentAdvisor(c, repo)
 	})
+
 	
 }
 
