@@ -76,9 +76,10 @@ func AchievementRoute(app *fiber.App, achievementRepo *repository.AchievementRep
 	// 	return service.GetAchievementDetail(c, achievementRepo) 
 	// })
 
-	// ach.Post("/", middleware.JWTBlacklistMiddleware(),func(c *fiber.Ctx) error {
-    // 	return service.CreateAchievement(c, achievementRepo, refRepo, studentRepo)
-	// })
+	ach.Post("/", middleware.RBACMiddleware("achievement:create"), func(c *fiber.Ctx) error {
+		return service.CreateAchievement(c, achievementRepo, refRepo, studentRepo)
+	})
+
 
 }
 

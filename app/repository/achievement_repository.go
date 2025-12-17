@@ -2,11 +2,13 @@ package repository
 
 import (
 	"context"
+	"fmt"
 
 	"UAS/app/model"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type AchievementRepository struct {
@@ -61,3 +63,21 @@ func (r *AchievementRepository) GetByStudentID(studentIDs []string) ([]model.Ach
 	}
 	return achievements, nil
 }
+
+func (r *AchievementRepository) Create(achievement *model.Achievement) (*model.Achievement, error) {
+	result, err := r.Collection.InsertOne(r.Ctx, achievement)
+	if err != nil {
+		return nil, err
+	}
+
+	// Aman: convert InsertedID ke primitive.ObjectID
+	oid, ok := result.InsertedID.(primitive.ObjectID)
+	if !ok {
+		return nil, fmt.Errorf("failed to convert insertedID to ObjectID")
+	}
+	achievement.ID = oid
+
+	return achievement, nil
+}
+
+
