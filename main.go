@@ -30,7 +30,9 @@ func main() {
 
 	// Init repository
 	userRepo := repository.NewUserRepository(db)
-	achievementRepo := repository.NewAchievementRepository(database.MongoDB)
+	achievementRepo := repository.NewAchievementRepository(
+    database.MongoDB.Collection("achievements"),
+)
 	refRepo := repository.NewAchievementReferenceRepository(db)
 	studentRepo := repository.NewStudentRepository(database.DB)
 	lecturerRepo := repository.NewLecturerRepository(db)
