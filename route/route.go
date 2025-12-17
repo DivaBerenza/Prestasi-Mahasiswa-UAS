@@ -30,9 +30,9 @@ func AuthRoute(app *fiber.App, repo *repository.UserRepository) {
 
 // UserRoute menangani CRUD user (admin only)
 func UserRoute(app *fiber.App, repo *repository.UserRepository) {
-	users := app.Group("/api/v1/users")
+	users := app.Group("/api/v1/users", middleware.JWTBlacklistMiddleware())
 
-	users.Use(middleware.JWTBlacklistMiddleware())
+	// users.Use(middleware.JWTBlacklistMiddleware())
 
 	// GET all users - hanya admin dengan permission user:read
 	users.Get("/", middleware.RBACMiddleware("user:manage"), func(c *fiber.Ctx) error {
@@ -66,8 +66,9 @@ func UserRoute(app *fiber.App, repo *repository.UserRepository) {
 }
 
 func AchievementRoute(app *fiber.App, achievementRepo *repository.AchievementRepository, refRepo *repository.AchievementReferenceRepository, studentRepo *repository.StudentRepository) {
-	ach := app.Group("/api/v1/achievements")
-	ach.Get("/", func(c *fiber.Ctx) error {
+	ach := app.Group("/api/v1/achievements", middleware.JWTBlacklistMiddleware())
+
+	ach.Get("/", middleware.RBACMiddleware("achievement:read"),func(c *fiber.Ctx) error {
 		return service.ListAchievements(c, achievementRepo)
 	})
 
@@ -93,7 +94,7 @@ func StudentRoute(app *fiber.App, repo *repository.StudentRepository) {
 		return service.GetStudentByID(c, repo)
 	})
 
-	students.Put("/:id/advisor", func(c *fiber.Ctx) error {
+	students.Put("/:id/advisor", middleware.RBACMiddleware("user:manage"),func(c *fiber.Ctx) error {
 		return service.UpdateStudentAdvisor(c, repo)
 	})
 	
@@ -106,7 +107,7 @@ func LecturerRoute(app *fiber.App, repo *repository.LecturerRepository) {
 		return service.GetLecturers(c, repo)
 	})
 
-	lec.Get("/:id/advisees", func(c *fiber.Ctx) error {
+	lec.Get("/:id/advisees", middleware.RBACMiddleware("achievement:read", "user:manage"),func(c *fiber.Ctx) error {
 		return service.GetLecturerAdvisees(c, repo)
 	})
 }

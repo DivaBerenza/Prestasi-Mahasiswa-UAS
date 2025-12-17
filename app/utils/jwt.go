@@ -32,15 +32,21 @@ func GenerateJWT(userID, roleID string, perms []string) (string, error) {
 }
 
 func ValidateJWT(tokenStr string) (*model.JWTClaims, error) {
+	// Cek apakah token ada di blacklist
 	if IsBlacklisted(tokenStr) {
 		return nil, errors.New("token has been logged out")
 	}
 
+	// Parse token dengan claims yang sesuai
 	token, err := jwt.ParseWithClaims(tokenStr, &model.JWTClaims{}, func(t *jwt.Token) (interface{}, error) {
 		return JWTSecret, nil
 	})
-	if err != nil || !token.Valid {
+	if err != nil {
 		return nil, errors.New("invalid or expired token")
+	}
+
+	if !token.Valid {
+		return nil, errors.New("invalid token")
 	}
 
 	claims, ok := token.Claims.(*model.JWTClaims)
@@ -48,8 +54,10 @@ func ValidateJWT(tokenStr string) (*model.JWTClaims, error) {
 		return nil, errors.New("invalid token claims")
 	}
 
+	// Jangan cek permissions di sini, hanya kembalikan claims
 	return claims, nil
 }
+
 
 // ----------------- BLACKLIST -----------------
 var blacklist = make(map[string]time.Time)

@@ -295,44 +295,29 @@ func UpdatePassword(c *fiber.Ctx, repo *repository.UserRepository) error {
 }
 
 func Profile(c *fiber.Ctx, repo *repository.UserRepository) error {
-	authHeader := c.Get("Authorization")
+    userID, ok := c.Locals("userID").(string)
+    if !ok {
+        return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid user"})
+    }
 
-	token, err := utils.ExtractTokenFromHeader(authHeader)
-	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
-	}
+    user, err := repo.GetUserByID(userID)
+    if err != nil {
+        return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "User not found"})
+    }
 
-	if utils.IsBlacklisted(token) {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": "token has been logged out",
-		})
-	}
-
-	claims, err := utils.ValidateJWT(token)
-	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
-	}
-
-	// 🔥 ambil user dari DB
-	user, err := repo.GetUserByID(claims.UserID)
-	if err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": "user not found",
-		})
-	}
-
-	return c.JSON(fiber.Map{
-		"status": "success",
-		"data": fiber.Map{
-			"id":       user.ID,
-			"username": user.Username,
-			"email":    user.Email,
-			"fullName": user.FullName,
-			"roleId":   user.RoleID,
-			"isActive": user.IsActive,
-		},
-	})
+    return c.JSON(fiber.Map{
+        "id":       user.ID,
+        "username": user.Username,
+        "email":    user.Email,
+        "fullName": user.FullName,
+        "roleId":   user.RoleID,
+        "isActive": user.IsActive,
+    })
 }
+
+
+
+
 
 
 
