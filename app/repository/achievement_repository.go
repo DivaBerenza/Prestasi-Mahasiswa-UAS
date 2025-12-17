@@ -80,4 +80,22 @@ func (r *AchievementRepository) Create(achievement *model.Achievement) (*model.A
 	return achievement, nil
 }
 
+func (r *AchievementRepository) GetByID(id string) (*model.Achievement, error) {
+	// Convert string ID ke ObjectID
+	oid, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, fmt.Errorf("invalid ID format: %v", err)
+	}
+
+	var achievement model.Achievement
+	err = r.Collection.FindOne(r.Ctx, bson.M{"_id": oid}).Decode(&achievement)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, nil // tidak ditemukan
+		}
+		return nil, fmt.Errorf("failed to fetch achievement: %v", err)
+	}
+
+	return &achievement, nil
+}
 

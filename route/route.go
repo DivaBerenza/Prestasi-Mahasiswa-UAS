@@ -68,13 +68,13 @@ func UserRoute(app *fiber.App, repo *repository.UserRepository) {
 func AchievementRoute(app *fiber.App, achievementRepo *repository.AchievementRepository, refRepo *repository.AchievementReferenceRepository, studentRepo *repository.StudentRepository) {
 	ach := app.Group("/api/v1/achievements", middleware.JWTBlacklistMiddleware())
 
-	ach.Get("/",func(c *fiber.Ctx) error {
+	ach.Get("/", middleware.RBACMiddleware("user:manage", "achievement:read"),func(c *fiber.Ctx) error {
 		return service.ListAchievements(c, achievementRepo, studentRepo)
 	})
 
-	// ach.Get("/:id", func(c *fiber.Ctx) error {
-	// 	return service.GetAchievementDetail(c, achievementRepo) 
-	// })
+	ach.Get("/:id", middleware.RBACMiddleware("achievement:read", "user:manage"),func(c *fiber.Ctx) error {
+		return service.GetAchievementDetail(c, achievementRepo) 
+	})
 
 	ach.Post("/", middleware.RBACMiddleware("achievement:create"), func(c *fiber.Ctx) error {
 		return service.CreateAchievement(c, achievementRepo, refRepo, studentRepo)

@@ -37,6 +37,30 @@ func ListAchievements(c *fiber.Ctx, achievementRepo *repository.AchievementRepos
     return c.JSON(fiber.Map{"data": achievements})
 }
 
+func GetAchievementDetail(
+	c *fiber.Ctx,
+	achievementRepo *repository.AchievementRepository,
+) error {
+	id := c.Params("id")
+	if id == "" {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "ID is required"})
+	}
+
+	achievement, err := achievementRepo.GetByID(id)
+	if err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	if achievement == nil {
+		return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": "achievement not found"})
+	}
+
+	return c.JSON(fiber.Map{
+		"status":      "success",
+		"achievement": achievement,
+	})
+}
+
+
 func CreateAchievement(
 	c *fiber.Ctx,
 	achievementRepo *repository.AchievementRepository,
