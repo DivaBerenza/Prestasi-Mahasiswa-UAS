@@ -6,6 +6,16 @@ import (
 	"github.com/google/uuid"
 )
 
+// GetStudents godoc
+// @Summary Get all students
+// @Description Mengambil daftar seluruh mahasiswa
+// @Tags Students
+// @Security BearerAuth
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Failure 401 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /students [get]
 func GetStudents(c *fiber.Ctx, repo *repository.StudentRepository) error {
 	students, err := repo.GetAll()
 	if err != nil {
@@ -19,6 +29,18 @@ func GetStudents(c *fiber.Ctx, repo *repository.StudentRepository) error {
 	})
 }
 
+// GetStudentByID godoc
+// @Summary Get student by ID
+// @Description Mengambil data mahasiswa berdasarkan ID
+// @Tags Students
+// @Security BearerAuth
+// @Produce json
+// @Param id path string true "Student ID (UUID)"
+// @Success 200 {object} map[string]interface{}
+// @Failure 401 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /students/{id} [get]
 func GetStudentByID(c *fiber.Ctx, repo *repository.StudentRepository) error {
 	studentID := c.Params("id")
 
@@ -39,6 +61,21 @@ func GetStudentByID(c *fiber.Ctx, repo *repository.StudentRepository) error {
 	})
 }
 
+// UpdateStudentAdvisor godoc
+// @Summary Update student advisor
+// @Description Mengubah dosen wali mahasiswa
+// @Tags Students
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param id path string true "Student ID (UUID)"
+// @Param body body object true "Advisor payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /students/{id}/advisor [put]
 func UpdateStudentAdvisor(c *fiber.Ctx, repo *repository.StudentRepository) error {
 	studentID := c.Params("id")
 

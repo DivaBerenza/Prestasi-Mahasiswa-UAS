@@ -106,7 +106,7 @@ func AchievementRoute(app *fiber.App, achievementRepo *repository.AchievementRep
 	ach.Get("/:id/history", middleware.RBACMiddleware("achievement:read", "user:manage"), func(c *fiber.Ctx) error {
 		return service.GetAchievementHistory(c, refRepo) // function service belum dibuat
 	})
-	
+
 	ach.Post("/:id/attachments", middleware.RBACMiddleware("achievement:update"), func(c *fiber.Ctx) error {
 		return service.UploadAchievementAttachment(c, achievementRepo) // function service belum dibuat
 	})
@@ -129,7 +129,6 @@ func StudentRoute(app *fiber.App, repo *repository.StudentRepository) {
 		return service.UpdateStudentAdvisor(c, repo)
 	})
 
-	
 }
 
 func LecturerRoute(app *fiber.App, repo *repository.LecturerRepository) {
@@ -142,5 +141,17 @@ func LecturerRoute(app *fiber.App, repo *repository.LecturerRepository) {
 	lec.Get("/:id/advisees", middleware.RBACMiddleware("achievement:read", "user:manage"),func(c *fiber.Ctx) error {
 		return service.GetLecturerAdvisees(c, repo)
 	})
+}
+
+func ReportRoute( app *fiber.App, reportRepo *repository.ReportRepository, achievementRepo *repository.AchievementRepository,) {
+	r := app.Group( "/api/v1/reports", middleware.JWTBlacklistMiddleware())
+
+	r.Get("/statistics",
+		service.GetReportStatistics(reportRepo, achievementRepo),
+	)
+
+	r.Get("/student/:id",
+		service.GetStudentReport(reportRepo, achievementRepo),
+	)
 }
 

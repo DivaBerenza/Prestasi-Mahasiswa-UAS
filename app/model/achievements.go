@@ -25,6 +25,23 @@ type Achievement struct {
 	UpdatedAt time.Time `bson:"updatedAt" json:"updatedAt"`
 }
 
+// Hanya untuk Swagger
+type AchievementResponse struct {
+	ID              string        `json:"id"`
+	StudentID       string        `json:"studentId"`
+	AchievementType string        `json:"achievementType"`
+	Title           string        `json:"title"`
+	Description     string        `json:"description"`
+	Details         interface{}   `json:"details"` // bisa flexible
+	Attachments     []Attachment  `json:"attachments"`
+	Tags            []string      `json:"tags"`
+	Points          int           `json:"points"`
+	Status          string        `json:"status"`
+	CreatedAt       time.Time     `json:"createdAt"`
+	UpdatedAt       time.Time     `json:"updatedAt"`
+}
+
+
 type Attachment struct {
 	FileName   string    `bson:"fileName" json:"fileName"`
 	FilePath    string    `bson:"filePath" json:"filePath"`

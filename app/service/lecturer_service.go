@@ -7,6 +7,16 @@ import (
 	"github.com/google/uuid"
 )
 
+// GetLecturers godoc
+// @Summary Get all lecturers
+// @Description Mengambil daftar seluruh dosen
+// @Tags Lecturers
+// @Security BearerAuth
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Failure 401 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /lecturers [get]
 func GetLecturers(c *fiber.Ctx, repo *repository.LecturerRepository) error {
 	lecturers, err := repo.GetAll()
 	if err != nil {
@@ -21,6 +31,18 @@ func GetLecturers(c *fiber.Ctx, repo *repository.LecturerRepository) error {
 	})
 }
 
+// GetLecturerAdvisees godoc
+// @Summary Get lecturer advisees
+// @Description Mengambil daftar mahasiswa bimbingan dosen
+// @Tags Lecturers
+// @Security BearerAuth
+// @Produce json
+// @Param id path string true "Lecturer ID (UUID)"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /lecturers/{id}/advisees [get]
 func GetLecturerAdvisees(c *fiber.Ctx, repo *repository.LecturerRepository) error {
 	lecturerID := c.Params("id")
 

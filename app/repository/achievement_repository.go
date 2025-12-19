@@ -210,4 +210,83 @@ func (r *AchievementRepository) AddAttachment(
 	return err
 }
 
+func (r *AchievementRepository) GetStatistics(
+	ctx context.Context,
+) (
+	total int64,
+	submitted int64,
+	verified int64,
+	rejected int64,
+	err error,
+) {
+
+	// total achievements
+	total, err = r.Collection.CountDocuments(ctx, bson.M{})
+	if err != nil {
+		return
+	}
+
+	// per status
+	submitted, err = r.Collection.CountDocuments(ctx, bson.M{"status": "submitted"})
+	if err != nil {
+		return
+	}
+
+	verified, err = r.Collection.CountDocuments(ctx, bson.M{"status": "verified"})
+	if err != nil {
+		return
+	}
+
+	rejected, err = r.Collection.CountDocuments(ctx, bson.M{"status": "rejected"})
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func (r *AchievementRepository) GetStatisticsByStudentID(
+	ctx context.Context,
+	studentID string,
+) (
+	total int64,
+	submitted int64,
+	verified int64,
+	rejected int64,
+	err error,
+) {
+
+	filter := bson.M{"studentId": studentID}
+
+	total, err = r.Collection.CountDocuments(ctx, filter)
+	if err != nil {
+		return
+	}
+
+	submitted, err = r.Collection.CountDocuments(ctx, bson.M{
+		"studentId": studentID,
+		"status":    "submitted",
+	})
+	if err != nil {
+		return
+	}
+
+	verified, err = r.Collection.CountDocuments(ctx, bson.M{
+		"studentId": studentID,
+		"status":    "verified",
+	})
+	if err != nil {
+		return
+	}
+
+	rejected, err = r.Collection.CountDocuments(ctx, bson.M{
+		"studentId": studentID,
+		"status":    "rejected",
+	})
+	if err != nil {
+		return
+	}
+
+	return
+}
 

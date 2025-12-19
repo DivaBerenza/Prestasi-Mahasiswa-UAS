@@ -10,10 +10,26 @@ import (
 	"UAS/database"
 	"UAS/app/repository"
 	"UAS/route"
+		_ "UAS/docs"
+
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	
+	fiberSwagger "github.com/swaggo/fiber-swagger"
 )
+
+// @title Prestasi Mahasiswa API
+// @version 1.0
+// @description Backend Sistem Prestasi Mahasiswa (PostgreSQL + MongoDB)
+// @host localhost:3000
+// @BasePath /api/v1
+// @schemes http
+
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+
 
 func main() {
 	// Load config
@@ -31,13 +47,11 @@ func main() {
 	// Init repository
 	userRepo := repository.NewUserRepository(db)
 	achievementRepo := repository.NewAchievementRepository(
-    database.MongoDB.Collection("achievements"),
-)
+    database.MongoDB.Collection("achievements"),)
 	refRepo := repository.NewAchievementReferenceRepository(db)
 	studentRepo := repository.NewStudentRepository(database.DB)
 	lecturerRepo := repository.NewLecturerRepository(db)
-
-
+	reportRepo := repository.NewReportRepository(db)
 
 	// Init Fiber
 	app := fiber.New()
@@ -53,16 +67,15 @@ func main() {
 		return c.SendString("🚀 API Running. Database Connected Successfully.")
 	})
 
-	// Auth route login
+	// Route Swagger
+	app.Get("/swagger/*", fiberSwagger.WrapHandler)
+
 	route.AuthRoute(app, userRepo)
-
-	// User route (CRUD users, admin only)
 	route.UserRoute(app, userRepo)
-
 	route.AchievementRoute(app, achievementRepo, refRepo, studentRepo)
-
 	route.StudentRoute(app, studentRepo)
 	route.LecturerRoute(app, lecturerRepo)
+	route.ReportRoute(app, reportRepo, achievementRepo)
 
 	// Channel untuk Ctrl+C
 	c := make(chan os.Signal, 1)

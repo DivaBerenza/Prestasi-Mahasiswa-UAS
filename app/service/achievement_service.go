@@ -15,10 +15,16 @@ import (
 	"github.com/google/uuid"
 )
 
+// ListAchievements godoc
+// @Summary List achievements
+// @Description Mahasiswa: melihat prestasi milik sendiri, Dosen/Admin: melihat prestasi yang sudah diverifikasi
+// @Tags Achievements
+// @Security BearerAuth
+// @Produce json
+// @Success 200 {array} model.AchievementResponse
+// @Failure 401 {object} map[string]string
+// @Router /achievements [get]
 
-// ============================
-// LIST ACHIEVEMENTS
-// ============================
 func ListAchievements(
 	c *fiber.Ctx,
 	achievementRepo *repository.AchievementRepository,
@@ -74,10 +80,17 @@ func ListAchievements(
 	return c.JSON(fiber.Map{"data": achievements})
 }
 
-
-// ============================
-// DETAIL
-// ============================
+// GetAchievementDetail godoc
+// @Summary Get achievement detail
+// @Description Get detail prestasi berdasarkan ID
+// @Tags Achievements
+// @Security BearerAuth
+// @Produce json
+// @Param id path string true "Achievement ID (Mongo ObjectID)"
+// @Success 200 {object} model.AchievementResponse
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Router /achievements/{id} [get]
 func GetAchievementDetail(
 	c *fiber.Ctx,
 	achievementRepo *repository.AchievementRepository,
@@ -102,10 +115,17 @@ func GetAchievementDetail(
 	})
 }
 
-
-// ============================
-// CREATE
-// ============================
+// CreateAchievement godoc
+// @Summary Create achievement
+// @Description Mahasiswa membuat prestasi baru (status draft)
+// @Tags Achievements
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param body body model.Achievement true "Achievement payload"
+// @Success 201 {object} model.AchievementResponse
+// @Failure 400 {object} map[string]string
+// @Router /achievements [post]
 func CreateAchievement(
 	c *fiber.Ctx,
 	achievementRepo *repository.AchievementRepository,
@@ -152,10 +172,18 @@ func CreateAchievement(
 	})
 }
 
-
-// ============================
-// UPDATE (DRAFT ONLY)
-// ============================
+// UpdateAchievement godoc
+// @Summary Update achievement
+// @Description Update prestasi (hanya status draft & milik sendiri)
+// @Tags Achievements
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param id path string true "Achievement ID"
+// @Param body body object true "Update payload"
+// @Success 200 {object} model.AchievementResponse
+// @Failure 403 {object} map[string]string
+// @Router /achievements/{id} [put]
 func UpdateAchievement(
 	c *fiber.Ctx,
 	achievementRepo *repository.AchievementRepository,
@@ -196,10 +224,16 @@ func UpdateAchievement(
 	return c.JSON(fiber.Map{"status": "success", "achievement": updated})
 }
 
-
-// ============================
-// DELETE
-// ============================
+// DeleteAchievement godoc
+// @Summary Delete achievement
+// @Description Hapus prestasi (soft delete, draft only)
+// @Tags Achievements
+// @Security BearerAuth
+// @Produce json
+// @Param id path string true "Achievement ID"
+// @Success 200 {object} model.AchievementResponse
+// @Failure 403 {object} map[string]string
+// @Router /achievements/{id} [delete]
 func DeleteAchievement(
 	c *fiber.Ctx,
 	achievementRepo *repository.AchievementRepository,
@@ -234,10 +268,16 @@ func DeleteAchievement(
 	return c.JSON(fiber.Map{"status": "success"})
 }
 
-
-// ============================
-// SUBMIT (MAHASISWA)
-// ============================
+// SubmitAchievement godoc
+// @Summary Submit achievement
+// @Description Mahasiswa submit prestasi dari draft ke submitted
+// @Tags Achievements
+// @Security BearerAuth
+// @Produce json
+// @Param id path string true "Achievement ID"
+// @Success 200 {object} model.AchievementResponse
+// @Failure 400 {object} map[string]string
+// @Router /achievements/{id}/submit [post]
 func SubmitAchievement(
 	c *fiber.Ctx,
 	achievementRepo *repository.AchievementRepository,
@@ -278,10 +318,15 @@ func SubmitAchievement(
 	return c.JSON(fiber.Map{"status": "success", "achievement": updated})
 }
 
-
-// ============================
-// VERIFY (DOSEN)
-// ============================
+// VerifyAchievement godoc
+// @Summary Verify achievement
+// @Description Dosen memverifikasi prestasi mahasiswa
+// @Tags Achievements
+// @Security BearerAuth
+// @Produce json
+// @Param id path string true "Achievement ID"
+// @Success 200 {object} model.AchievementResponse
+// @Router /achievements/{id}/verify [post]
 func VerifyAchievement(
 	c *fiber.Ctx,
 	refRepo *repository.AchievementReferenceRepository,
@@ -301,11 +346,18 @@ func VerifyAchievement(
 
 	return c.JSON(fiber.Map{"message": "achievement verified"})
 }
-
-
-// ============================
-// REJECT (DOSEN)
-// ============================
+// RejectAchievement godoc
+// @Summary Reject achievement
+// @Description Dosen menolak prestasi mahasiswa
+// @Tags Achievements
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param id path string true "Achievement ID"
+// @Param body body object true "Reject note"
+// @Success 200 {object} model.AchievementResponse
+// @Failure 400 {object} map[string]string
+// @Router /achievements/{id}/reject [post]
 func RejectAchievement(
 	c *fiber.Ctx,
 	achievementRepo *repository.AchievementRepository,
@@ -343,9 +395,17 @@ func RejectAchievement(
 }
 
 
-// ============================
-// HISTORY
-// ============================
+// UploadAchievementAttachment godoc
+// @Summary Upload achievement attachment
+// @Description Upload file pendukung prestasi (PDF/JPG/PNG)
+// @Tags Achievements
+// @Security BearerAuth
+// @Accept multipart/form-data
+// @Produce json
+// @Param id path string true "Achievement ID"
+// @Param file formData file true "Attachment file"
+// @Success 200 {object} model.AchievementResponse
+// @Router /achievements/{id}/attachments [post]
 func GetAchievementHistory(
 	c *fiber.Ctx,
 	refRepo *repository.AchievementReferenceRepository,
@@ -368,7 +428,17 @@ func GetAchievementHistory(
 	})
 }
 
-// service/achievement_service.go
+// UploadAchievementAttachment godoc
+// @Summary Upload achievement attachment
+// @Description Upload file pendukung prestasi (PDF/JPG/PNG)
+// @Tags Achievements
+// @Security BearerAuth
+// @Accept multipart/form-data
+// @Produce json
+// @Param id path string true "Achievement ID"
+// @Param file formData file true "Attachment file"
+// @Success 200 {object} map[string]interface{}
+// @Router /achievements/{id}/attachments [post]
 func UploadAchievementAttachment(
 	c *fiber.Ctx,
 	achievementRepo *repository.AchievementRepository,

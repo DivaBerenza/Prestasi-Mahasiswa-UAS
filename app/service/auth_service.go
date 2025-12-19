@@ -10,6 +10,18 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// Login godoc
+// @Summary Login user
+// @Description Login menggunakan email dan password untuk mendapatkan JWT token
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param body body model.LoginRequest true "Login payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Failure 403 {object} map[string]string
+// @Router /auth/login [post]
 func Login(c *fiber.Ctx, repo *repository.UserRepository) error {
 	var req model.LoginRequest
 	if err := c.BodyParser(&req); err != nil {
@@ -53,6 +65,17 @@ func Login(c *fiber.Ctx, repo *repository.UserRepository) error {
 	})
 }
 
+// RefreshToken godoc
+// @Summary Refresh JWT token
+// @Description Generate access token baru menggunakan refresh token
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param body body object true "Refresh token payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Router /auth/refresh [post]
 func RefreshToken(c *fiber.Ctx, repo *repository.UserRepository) error {
 	// Ambil refresh token dari body
 	var body struct {
@@ -96,6 +119,16 @@ func RefreshToken(c *fiber.Ctx, repo *repository.UserRepository) error {
 	})
 }
 
+// Logout godoc
+// @Summary Logout user
+// @Description Logout dan blacklist JWT token
+// @Tags Auth
+// @Security BearerAuth
+// @Produce json
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Router /auth/logout [post]
 func Logout(c *fiber.Ctx) error {
 	authHeader := c.Get("Authorization")
 	token, err := utils.ExtractTokenFromHeader(authHeader)

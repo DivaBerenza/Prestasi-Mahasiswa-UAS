@@ -10,6 +10,16 @@ import (
 	"github.com/google/uuid"
 )
 
+// GetAllUsers godoc
+// @Summary Get all users
+// @Description Mengambil seluruh data user (tanpa password)
+// @Tags Users
+// @Security BearerAuth
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Failure 401 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /users [get]
 func GetAllUsers(c *fiber.Ctx, repo *repository.UserRepository) error {
 	users, err := repo.GetAllUsers()
 	if err != nil {
@@ -37,6 +47,17 @@ func GetAllUsers(c *fiber.Ctx, repo *repository.UserRepository) error {
 	})
 }
 
+// GetUserByID godoc
+// @Summary Get user by ID
+// @Description Mengambil data user berdasarkan ID
+// @Tags Users
+// @Security BearerAuth
+// @Produce json
+// @Param id path string true "User ID (UUID)"
+// @Success 200 {object} map[string]interface{}
+// @Failure 401 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Router /users/{id} [get]
 func GetUserByID(c *fiber.Ctx, repo *repository.UserRepository) error {
 	id := c.Params("id")
 
@@ -61,6 +82,19 @@ func GetUserByID(c *fiber.Ctx, repo *repository.UserRepository) error {
 	})
 }
 
+// CreateUser godoc
+// @Summary Create new user
+// @Description Membuat user baru (admin)
+// @Tags Users
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param body body object true "Create user payload"
+// @Success 201 {object} map[string]interface{}
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /users [post]
 func CreateUser(c *fiber.Ctx, repo *repository.UserRepository) error {
 	var input struct {
 		Username string `json:"username"`
@@ -147,8 +181,20 @@ func CreateUser(c *fiber.Ctx, repo *repository.UserRepository) error {
 	})
 }
 
-
-
+// UpdateUser godoc
+// @Summary Update user
+// @Description Mengubah data user
+// @Tags Users
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param id path string true "User ID (UUID)"
+// @Param body body object true "Update user payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /users/{id} [put]
 func UpdateUser(c *fiber.Ctx, repo *repository.UserRepository) error {
 	// Ambil ID dari URL
 	idParam := c.Params("id")
@@ -210,6 +256,19 @@ func UpdateUser(c *fiber.Ctx, repo *repository.UserRepository) error {
 	})
 }
 
+// DeleteUser godoc
+// @Summary Delete user
+// @Description Menghapus user berdasarkan ID
+// @Tags Users
+// @Security BearerAuth
+// @Produce json
+// @Param id path string true "User ID (UUID)"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /users/{id} [delete]
 func DeleteUser(c *fiber.Ctx, repo *repository.UserRepository) error {
 	// Parse ID
 	idParam := c.Params("id")
@@ -238,7 +297,21 @@ func DeleteUser(c *fiber.Ctx, repo *repository.UserRepository) error {
 	})
 }
 
-
+// UpdatePassword godoc
+// @Summary Update user password
+// @Description Mengubah password user
+// @Tags Users
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param id path string true "User ID (UUID)"
+// @Param body body object true "Password payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /users/{id}/password [put]
 func UpdatePassword(c *fiber.Ctx, repo *repository.UserRepository) error {
 	// Parse user ID
 	idParam := c.Params("id")
@@ -294,6 +367,16 @@ func UpdatePassword(c *fiber.Ctx, repo *repository.UserRepository) error {
 	})
 }
 
+// Profile godoc
+// @Summary Get current user profile
+// @Description Mengambil profil user yang sedang login
+// @Tags Users
+// @Security BearerAuth
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Failure 401 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Router /users/profile [get]
 func Profile(c *fiber.Ctx, repo *repository.UserRepository) error {
     userID, ok := c.Locals("userID").(string)
     if !ok {
